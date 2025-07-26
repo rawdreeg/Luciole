@@ -136,6 +136,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (ws.userId && ws.sparkId) {
               const { latitude, longitude } = message;
               
+              console.log(`Location update from ${ws.userId}: ${latitude}, ${longitude}`);
+              
               // Update location in storage
               await storage.updateConnectionLocation(ws.userId, ws.sparkId, latitude, longitude);
               
@@ -143,21 +145,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const sparkConnections = await storage.getConnectionsBySparkId(ws.sparkId);
               const otherConnections = sparkConnections.filter(c => c.userId !== ws.userId);
               
+              console.log(`Broadcasting to ${otherConnections.length} other users`);
+              
               // Send location update to other users
               otherConnections.forEach(connection => {
                 const otherWs = activeConnections.get(`${ws.sparkId}-${connection.userId}`);
                 if (otherWs && otherWs.readyState === WebSocket.OPEN) {
-                  otherWs.send(JSON.stringify({
+                  const locationUpdate = {
                     type: 'location_update',
                     userId: ws.userId,
                     latitude,
                     longitude,
-                    otherUsers: sparkConnections.map(c => ({
+                    otherUsers: sparkConnections.filter(c => c.latitude && c.longitude).map(c => ({
                       userId: c.userId,
                       latitude: c.latitude,
                       longitude: c.longitude,
                     })),
-                  }));
+                  };
+                  console.log(`Sending location update to ${connection.userId}:`, locationUpdate);
+                  otherWs.send(JSON.stringify(locationUpdate));
                 }
               });
             }

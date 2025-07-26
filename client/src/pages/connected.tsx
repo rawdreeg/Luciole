@@ -27,9 +27,15 @@ export default function Connected({ sparkId }: ConnectedProps) {
   
   const { isConnected, sendMessage } = useWebSocket({
     onMessage: (message) => {
+      console.log("Connected page received message:", message);
       switch (message.type) {
         case 'location_update':
-          setOtherUsers(message.otherUsers.filter((u: any) => u.userId !== userId));
+          console.log("Location update received:", message.otherUsers);
+          setOtherUsers(message.otherUsers.filter((u: any) => u.userId !== userId && u.latitude && u.longitude));
+          break;
+        case 'user_joined':
+          console.log("User joined:", message.userId);
+          // Refetch connections when someone joins
           break;
         case 'sync_signal':
           // Check if users are close enough to sync (within 10 meters)
@@ -42,6 +48,7 @@ export default function Connected({ sparkId }: ConnectedProps) {
                 closestUser.latitude,
                 closestUser.longitude
               );
+              console.log("Distance calculated:", distance);
               if (distance <= 10) {
                 setLocation(`/sync/${sparkId}`);
               }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { ArrowLeft, Copy, MessageSquare, QrCode, Flame } from "lucide-react";
 import { QRModal } from "@/components/qr-modal";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import type { Spark, SparkConnection } from "@shared/schema";
 
 interface SparkCreatedProps {
@@ -16,6 +17,7 @@ interface SparkCreatedProps {
 export default function SparkCreated({ sparkId }: SparkCreatedProps) {
   const [, setLocation] = useLocation();
   const [showQRModal, setShowQRModal] = useState(false);
+  const [userId] = useState(() => `creator-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const { toast } = useToast();
 
   const { data: spark } = useQuery<Spark>({
@@ -26,6 +28,37 @@ export default function SparkCreated({ sparkId }: SparkCreatedProps) {
     queryKey: [`/api/sparks/${sparkId}/connections`],
     refetchInterval: 2000,
   });
+
+  const { latitude, longitude } = useGeolocation();
+  
+  const { isConnected, sendMessage } = useWebSocket({
+    onMessage: (message) => {
+      console.log("Spark creator received message:", message);
+      // Handle any messages if needed
+    },
+  });
+
+  // Join the spark when component mounts (creator should also be a participant)
+  useEffect(() => {
+    if (isConnected && sparkId && userId) {
+      sendMessage({
+        type: 'join',
+        sparkId,
+        userId,
+      });
+    }
+  }, [isConnected, sparkId, userId, sendMessage]);
+
+  // Send location updates
+  useEffect(() => {
+    if (isConnected && latitude && longitude) {
+      sendMessage({
+        type: 'location',
+        latitude,
+        longitude,
+      });
+    }
+  }, [isConnected, latitude, longitude, sendMessage]);
 
   const shareableLink = `${window.location.origin}/s/${sparkId}`;
 
@@ -141,6 +174,16 @@ export default function SparkCreated({ sparkId }: SparkCreatedProps) {
             <span className="text-sm text-gray-400">Waiting for connection...</span>
           </div>
           <p className="text-xs text-gray-500">{connections.length} people connected</p>
+          
+          {/* Join Own Spark Button */}
+          {connections.length > 0 && (
+            <Button
+              onClick={() => setLocation(`/s/${sparkId}`)}
+              className="mt-4 bg-firefly-400 hover:bg-firefly-500 text-dark-900 font-semibold py-2 px-4 rounded-xl transition-colors"
+            >
+              Join the Connection
+            </Button>
+          )}
         </div>
       </main>
 
