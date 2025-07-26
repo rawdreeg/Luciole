@@ -1,0 +1,32 @@
+{
+  "name": "Luciole - Find Each Other in the Crowd",
+  "short_name": "Luciole",
+  "description": "A location-aware app that synchronizes blinking lights between users when they're in proximity, helping them find each other in crowds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0B",
+  "theme_color": "#FFB800",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDgiIGZpbGw9IiMwQTBBMEIiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNDAiIGZpbGw9IiNGRkI4MDAiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMjQiIGZpbGw9IiNGRjhDNDIiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMTIiIGZpbGw9IiNGRkYzRDQiLz4KPC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTI4IiBmaWxsPSIjMEEwQTBCIi8+CjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTA4IiBmaWxsPSIjRkZCODAwIi8+CjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNjQiIGZpbGw9IiNGRjhDNDIiLz4KPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIzMiIgZmlsbD0iI0ZGRjNENCIvPgo8L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["social", "utilities"],
+  "lang": "en",
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iNTY4IiBmaWxsPSIjMEEwQTBCIi8+CjxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjI0MCIgaGVpZ2h0PSI0ODgiIHJ4PSIyNCIgZmlsbD0iIzFBMUExQyIgZmlsbC1vcGFjaXR5PSIwLjgiLz4KPGNpcmNsZSBjeD0iMTYwIiBjeT0iMjAwIiByPSI0MCIgZmlsbD0iI0ZGQjgwMCIvPgo8dGV4dCB4PSIxNjAiIHk9IjI4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmaWxsPSIjRkZGM0Q0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GaW5kIEVhY2ggT3RoZXI8L3RleHQ+Cjx0ZXh0IHg9IjE2MCIgeT0iMzAwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiNGRkYzRDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPmluIHRoZSBDcm93ZDwvdGV4dD4KPC9zdmc+",
+      "sizes": "320x568",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ]
+}
