@@ -130,8 +130,18 @@ export default function Connected({ sparkId }: ConnectedProps) {
     setLocation("/");
   };
 
-  const handleFlash = () => {
-    if (!isFlashing && isConnected && showFlashButton) {
+  const handleFlashToggle = () => {
+    if (!isConnected) return;
+    
+    if (isConstantBlinking) {
+      // Stop constant blinking
+      setIsConstantBlinking(false);
+      sendMessage({
+        type: 'stop_constant_blink',
+        timestamp: Date.now(),
+      });
+    } else if (!isFlashing && showFlashButton) {
+      // Start single flash or constant blinking based on press duration
       setIsFlashing(true);
       setShowFlashButton(false);
       sendMessage({
@@ -147,24 +157,15 @@ export default function Connected({ sparkId }: ConnectedProps) {
     }
   };
 
-  const handleStartConstantBlink = () => {
-    if (isConnected && !isConstantBlinking) {
-      setIsConstantBlinking(true);
-      sendMessage({
-        type: 'start_constant_blink',
-        timestamp: Date.now(),
-      });
-    }
-  };
-
-  const handleStopConstantBlink = () => {
-    if (isConnected && isConstantBlinking) {
-      setIsConstantBlinking(false);
-      sendMessage({
-        type: 'stop_constant_blink',
-        timestamp: Date.now(),
-      });
-    }
+  const handleLongPress = () => {
+    if (!isConnected || isConstantBlinking) return;
+    
+    // Start constant blinking on long press
+    setIsConstantBlinking(true);
+    sendMessage({
+      type: 'start_constant_blink',
+      timestamp: Date.now(),
+    });
   };
 
   const handleFlashComplete = () => {
@@ -225,50 +226,52 @@ export default function Connected({ sparkId }: ConnectedProps) {
           />
         </div>
 
-        {/* Flash Controls */}
+        {/* Flash Control */}
         <div className="mb-8 flex flex-col items-center space-y-4">
-          {/* Single Flash Button */}
           <div className="flex flex-col items-center">
             <Button
-              onClick={handleFlash}
-              disabled={!showFlashButton || !isConnected}
-              className={`w-24 h-24 rounded-full ${
-                showFlashButton && isConnected
-                  ? 'bg-firefly-400 hover:bg-firefly-500 text-dark-900 active:scale-95'
-                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              } transition-all duration-200 font-bold text-lg shadow-lg`}
-              style={{ backgroundColor: flashColor }}
+              onClick={handleFlashToggle}
+              onMouseDown={() => {
+                // Start timer for long press
+                const timer = setTimeout(handleLongPress, 1000);
+                const cleanup = () => {
+                  clearTimeout(timer);
+                  document.removeEventListener('mouseup', cleanup);
+                  document.removeEventListener('touchend', cleanup);
+                };
+                document.addEventListener('mouseup', cleanup);
+                document.addEventListener('touchend', cleanup);
+              }}
+              disabled={(!showFlashButton && !isConstantBlinking) || !isConnected}
+              className={`w-24 h-24 rounded-full transition-all duration-200 font-bold text-lg shadow-lg ${
+                isConstantBlinking 
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                  : showFlashButton && isConnected
+                    ? 'hover:scale-105 text-dark-900 active:scale-95'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }`}
+              style={{ 
+                backgroundColor: isConstantBlinking ? '#ef4444' : (showFlashButton && isConnected ? flashColor : '#4b5563')
+              }}
             >
               <Zap className="w-8 h-8" />
             </Button>
-            <p className="text-center text-sm text-gray-400 mt-2">
-              {!showFlashButton ? 'Cooling down...' : 'Tap to flash all devices'}
-            </p>
+            <div className="text-center text-sm text-gray-400 mt-2">
+              {isConstantBlinking ? (
+                <div className="text-red-400 animate-pulse">
+                  <div className="font-semibold">Constant blinking active</div>
+                  <div>Tap to stop</div>
+                </div>
+              ) : !showFlashButton ? (
+                'Cooling down...'
+              ) : (
+                <div>
+                  <div>Tap: Flash all devices</div>
+                  <div className="text-xs text-gray-500">Hold: Start constant blink</div>
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* Constant Blink Controls */}
-          <div className="flex space-x-3">
-            <Button
-              onClick={handleStartConstantBlink}
-              disabled={!isConnected || isConstantBlinking}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 disabled:text-gray-400"
-            >
-              Start Constant Blink
-            </Button>
-            <Button
-              onClick={handleStopConstantBlink}
-              disabled={!isConnected || !isConstantBlinking}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 disabled:text-gray-400"
-            >
-              Stop Blinking
-            </Button>
-          </div>
-          
-          {isConstantBlinking && (
-            <p className="text-center text-sm text-firefly-400 animate-pulse">
-              🔥 Constant blinking active on all devices
-            </p>
-          )}
         </div>
 
         {/* Proximity Display */}
