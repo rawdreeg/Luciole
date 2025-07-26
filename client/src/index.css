@@ -173,6 +173,42 @@
   }
 }
 
+@keyframes screen-flash {
+  0% { 
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  20% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  40% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.1;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% { 
+    opacity: 0;
+  }
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -183,6 +219,10 @@
 
 .animate-synchronized-blink {
   animation: synchronized-blink 1.5s ease-in-out infinite;
+}
+
+.animate-screen-flash {
+  animation: screen-flash 2s ease-in-out;
 }
 
 /* Firefly background */

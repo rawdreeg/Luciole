@@ -188,6 +188,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             break;
             
+          case 'flash':
+            if (ws.userId && ws.sparkId) {
+              const { timestamp } = message;
+              
+              console.log(`Flash signal from ${ws.userId}`);
+              
+              // Broadcast flash signal to all users in the same spark
+              const connections = await storage.getConnectionsBySparkId(ws.sparkId);
+              connections.forEach(connection => {
+                const otherWs = activeConnections.get(`${ws.sparkId}-${connection.userId}`);
+                if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+                  otherWs.send(JSON.stringify({
+                    type: 'flash_signal',
+                    timestamp,
+                    fromUser: ws.userId,
+                  }));
+                }
+              });
+            }
+            break;
+            
           case 'disconnect':
             if (ws.userId && ws.sparkId) {
               await handleDisconnection(ws);

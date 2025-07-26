@@ -63,6 +63,10 @@ export const wsMessageSchema = z.discriminatedUnion("type", [
     timestamp: z.number(),
   }),
   z.object({
+    type: z.literal("flash"),
+    timestamp: z.number(),
+  }),
+  z.object({
     type: z.literal("disconnect"),
   }),
 ]);

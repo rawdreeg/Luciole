@@ -3,8 +3,9 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, MapPin } from "lucide-react";
+import { X, MapPin, Zap } from "lucide-react";
 import { ProximityDisplay } from "@/components/proximity-display";
+import { FireflyAnimation } from "@/components/firefly-animation";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { calculateDistance } from "@/lib/distance";
@@ -18,6 +19,8 @@ export default function Connected({ sparkId }: ConnectedProps) {
   const [, setLocation] = useLocation();
   const [userId] = useState(() => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [otherUsers, setOtherUsers] = useState<Array<{ userId: string; latitude: number; longitude: number }>>([]);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [showFlashButton, setShowFlashButton] = useState(true);
   
   const { data: spark } = useQuery<Spark>({
     queryKey: [`/api/sparks/${sparkId}`],
@@ -36,6 +39,13 @@ export default function Connected({ sparkId }: ConnectedProps) {
         case 'user_joined':
           console.log("User joined:", message.userId);
           // Refetch connections when someone joins
+          break;
+        case 'flash_signal':
+          console.log("Flash signal received from:", message.fromUser);
+          // Trigger flash animation when someone else flashes
+          if (message.fromUser !== userId) {
+            setIsFlashing(true);
+          }
           break;
         case 'sync_signal':
           // Check if users are close enough to sync (within 10 meters)
@@ -101,6 +111,26 @@ export default function Connected({ sparkId }: ConnectedProps) {
     setLocation("/");
   };
 
+  const handleFlash = () => {
+    if (!isFlashing && isConnected) {
+      setIsFlashing(true);
+      setShowFlashButton(false);
+      sendMessage({
+        type: 'flash',
+        timestamp: Date.now(),
+      });
+      
+      // Re-enable flash button after cooldown
+      setTimeout(() => {
+        setShowFlashButton(true);
+      }, 3000);
+    }
+  };
+
+  const handleFlashComplete = () => {
+    setIsFlashing(false);
+  };
+
   const distance = otherUsers.length > 0 && latitude && longitude && otherUsers[0].latitude && otherUsers[0].longitude
     ? calculateDistance(latitude, longitude, otherUsers[0].latitude, otherUsers[0].longitude)
     : null;
@@ -143,6 +173,32 @@ export default function Connected({ sparkId }: ConnectedProps) {
             Looking for each other...
           </h2>
           <p className="text-gray-300 mb-8">Move closer to sync your lights</p>
+        </div>
+
+        {/* Firefly Animation */}
+        <div className="mb-8">
+          <FireflyAnimation 
+            isFlashing={isFlashing} 
+            onFlashComplete={handleFlashComplete}
+          />
+        </div>
+
+        {/* Flash Button */}
+        <div className="mb-8">
+          <Button
+            onClick={handleFlash}
+            disabled={!showFlashButton || !isConnected}
+            className={`w-24 h-24 rounded-full ${
+              showFlashButton && isConnected
+                ? 'bg-firefly-400 hover:bg-firefly-500 text-dark-900 active:scale-95'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            } transition-all duration-200 font-bold text-lg shadow-lg`}
+          >
+            <Zap className="w-8 h-8" />
+          </Button>
+          <p className="text-center text-sm text-gray-400 mt-2">
+            {!showFlashButton ? 'Cooling down...' : 'Tap to flash'}
+          </p>
         </div>
 
         {/* Proximity Display */}
