@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Plus, Link2 } from "lucide-react";
+import { Sparkles, Plus, Link2, Palette } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
 import { FireflyAnimation } from "@/components/firefly-animation";
 import { InstallPrompt } from "@/components/install-prompt";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,6 +16,7 @@ export default function Home() {
   const { toast } = useToast();
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [selectedColor, setSelectedColor] = useState("#FFB800");
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const colorOptions = [
     { name: "Firefly Yellow", color: "#FFB800" },
@@ -117,24 +119,67 @@ export default function Home() {
           {/* Color Selection */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-white mb-4">Choose your flash color:</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {colorOptions.map((option) => (
-                <button
-                  key={option.color}
-                  onClick={() => setSelectedColor(option.color)}
-                  className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
-                    selectedColor === option.color
-                      ? 'border-white scale-110 shadow-lg'
-                      : 'border-gray-400 hover:border-white hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: option.color }}
-                  title={option.name}
+            
+            {/* Color Preview and Picker Toggle */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex items-center space-x-3">
+                <div 
+                  className="w-16 h-16 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-105 transition-transform"
+                  style={{ backgroundColor: selectedColor }}
+                  onClick={() => setShowColorPicker(!showColorPicker)}
                 />
-              ))}
+                <Button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  variant="outline"
+                  className="bg-transparent border-gray-400 text-white hover:bg-gray-800"
+                >
+                  <Palette className="w-4 h-4 mr-2" />
+                  {showColorPicker ? 'Hide' : 'Pick'} Color
+                </Button>
+              </div>
+              
+              <p className="text-sm text-gray-400 text-center">
+                Selected: {selectedColor.toUpperCase()}
+              </p>
+              
+              {/* Quick Color Presets */}
+              <div className="grid grid-cols-4 gap-2">
+                {colorOptions.map((option) => (
+                  <button
+                    key={option.color}
+                    onClick={() => setSelectedColor(option.color)}
+                    className={`w-8 h-8 rounded-full border transition-all duration-200 ${
+                      selectedColor === option.color
+                        ? 'border-white scale-110'
+                        : 'border-gray-400 hover:border-white hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: option.color }}
+                    title={option.name}
+                  />
+                ))}
+              </div>
+              
+              {/* Color Picker */}
+              {showColorPicker && (
+                <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-600">
+                  <HexColorPicker 
+                    color={selectedColor} 
+                    onChange={setSelectedColor}
+                    style={{ width: '200px', height: '200px' }}
+                  />
+                  <div className="mt-3 flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      className="bg-gray-700 text-white px-3 py-1 rounded text-sm font-mono border border-gray-600 w-24"
+                      placeholder="#FFB800"
+                    />
+                    <span className="text-gray-400 text-sm">or pick from wheel</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-gray-400 mt-2 text-center">
-              Selected: {colorOptions.find(c => c.color === selectedColor)?.name}
-            </p>
           </div>
         </div>
 
