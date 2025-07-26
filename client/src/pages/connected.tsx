@@ -20,11 +20,20 @@ export default function Connected({ sparkId }: ConnectedProps) {
   const [userId] = useState(() => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [otherUsers, setOtherUsers] = useState<Array<{ userId: string; latitude: number; longitude: number }>>([]);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [isConstantBlinking, setIsConstantBlinking] = useState(false);
+  const [flashColor, setFlashColor] = useState("#FFB800");
   const [showFlashButton, setShowFlashButton] = useState(true);
   
   const { data: spark } = useQuery<Spark>({
     queryKey: [`/api/sparks/${sparkId}`],
   });
+
+  // Set flash color from spark data
+  useEffect(() => {
+    if (spark?.flashColor) {
+      setFlashColor(spark.flashColor);
+    }
+  }, [spark]);
 
   const { latitude, longitude, error: locationError } = useGeolocation();
   
@@ -42,10 +51,20 @@ export default function Connected({ sparkId }: ConnectedProps) {
           break;
         case 'flash_signal':
           console.log("Flash signal received from:", message.fromUser);
-          // Trigger flash animation when someone else flashes
-          if (message.fromUser !== userId) {
+          // Trigger flash animation when someone flashes
+          if (message.synchronized || message.fromUser !== userId) {
+            setFlashColor(message.color || "#FFB800");
             setIsFlashing(true);
           }
+          break;
+        case 'start_constant_blink_signal':
+          console.log("Start constant blink signal received from:", message.fromUser);
+          setFlashColor(message.color || "#FFB800");
+          setIsConstantBlinking(true);
+          break;
+        case 'stop_constant_blink_signal':
+          console.log("Stop constant blink signal received from:", message.fromUser);
+          setIsConstantBlinking(false);
           break;
         case 'sync_signal':
           // Check if users are close enough to sync (within 10 meters)
@@ -112,18 +131,39 @@ export default function Connected({ sparkId }: ConnectedProps) {
   };
 
   const handleFlash = () => {
-    if (!isFlashing && isConnected) {
+    if (!isFlashing && isConnected && showFlashButton) {
       setIsFlashing(true);
       setShowFlashButton(false);
       sendMessage({
         type: 'flash',
         timestamp: Date.now(),
+        synchronized: true,
       });
       
       // Re-enable flash button after cooldown
       setTimeout(() => {
         setShowFlashButton(true);
       }, 3000);
+    }
+  };
+
+  const handleStartConstantBlink = () => {
+    if (isConnected && !isConstantBlinking) {
+      setIsConstantBlinking(true);
+      sendMessage({
+        type: 'start_constant_blink',
+        timestamp: Date.now(),
+      });
+    }
+  };
+
+  const handleStopConstantBlink = () => {
+    if (isConnected && isConstantBlinking) {
+      setIsConstantBlinking(false);
+      sendMessage({
+        type: 'stop_constant_blink',
+        timestamp: Date.now(),
+      });
     }
   };
 
@@ -178,27 +218,57 @@ export default function Connected({ sparkId }: ConnectedProps) {
         {/* Firefly Animation */}
         <div className="mb-8">
           <FireflyAnimation 
-            isFlashing={isFlashing} 
+            isFlashing={isFlashing}
+            isConstantBlinking={isConstantBlinking}
+            flashColor={flashColor}
             onFlashComplete={handleFlashComplete}
           />
         </div>
 
-        {/* Flash Button */}
-        <div className="mb-8">
-          <Button
-            onClick={handleFlash}
-            disabled={!showFlashButton || !isConnected}
-            className={`w-24 h-24 rounded-full ${
-              showFlashButton && isConnected
-                ? 'bg-firefly-400 hover:bg-firefly-500 text-dark-900 active:scale-95'
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            } transition-all duration-200 font-bold text-lg shadow-lg`}
-          >
-            <Zap className="w-8 h-8" />
-          </Button>
-          <p className="text-center text-sm text-gray-400 mt-2">
-            {!showFlashButton ? 'Cooling down...' : 'Tap to flash'}
-          </p>
+        {/* Flash Controls */}
+        <div className="mb-8 flex flex-col items-center space-y-4">
+          {/* Single Flash Button */}
+          <div className="flex flex-col items-center">
+            <Button
+              onClick={handleFlash}
+              disabled={!showFlashButton || !isConnected}
+              className={`w-24 h-24 rounded-full ${
+                showFlashButton && isConnected
+                  ? 'bg-firefly-400 hover:bg-firefly-500 text-dark-900 active:scale-95'
+                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              } transition-all duration-200 font-bold text-lg shadow-lg`}
+              style={{ backgroundColor: flashColor }}
+            >
+              <Zap className="w-8 h-8" />
+            </Button>
+            <p className="text-center text-sm text-gray-400 mt-2">
+              {!showFlashButton ? 'Cooling down...' : 'Tap to flash all devices'}
+            </p>
+          </div>
+
+          {/* Constant Blink Controls */}
+          <div className="flex space-x-3">
+            <Button
+              onClick={handleStartConstantBlink}
+              disabled={!isConnected || isConstantBlinking}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 disabled:text-gray-400"
+            >
+              Start Constant Blink
+            </Button>
+            <Button
+              onClick={handleStopConstantBlink}
+              disabled={!isConnected || !isConstantBlinking}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 disabled:text-gray-400"
+            >
+              Stop Blinking
+            </Button>
+          </div>
+          
+          {isConstantBlinking && (
+            <p className="text-center text-sm text-firefly-400 animate-pulse">
+              🔥 Constant blinking active on all devices
+            </p>
+          )}
         </div>
 
         {/* Proximity Display */}

@@ -14,10 +14,24 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [selectedColor, setSelectedColor] = useState("#FFB800");
+
+  const colorOptions = [
+    { name: "Firefly Yellow", color: "#FFB800" },
+    { name: "Electric Blue", color: "#0099FF" },
+    { name: "Neon Green", color: "#00FF88" },
+    { name: "Hot Pink", color: "#FF0080" },
+    { name: "Purple", color: "#8800FF" },
+    { name: "Orange", color: "#FF4400" },
+    { name: "Red", color: "#FF0000" },
+    { name: "White", color: "#FFFFFF" },
+  ];
 
   const createSparkMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/sparks");
+      const response = await apiRequest("POST", "/api/sparks", {
+        flashColor: selectedColor,
+      });
       return response.json() as Promise<Spark>;
     },
     onSuccess: (spark) => {
@@ -86,7 +100,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center justify-center px-5 -mt-16">
         <div className="text-center mb-12">
           <div className="relative mb-8">
-            <FireflyAnimation />
+            <FireflyAnimation flashColor={selectedColor} />
           </div>
 
           <h2 className="text-3xl font-bold text-firefly-50 mb-4">
@@ -99,6 +113,29 @@ export default function Home() {
             <br />
             When you're close, your lights will sync.
           </p>
+
+          {/* Color Selection */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-white mb-4">Choose your flash color:</h3>
+            <div className="grid grid-cols-4 gap-3">
+              {colorOptions.map((option) => (
+                <button
+                  key={option.color}
+                  onClick={() => setSelectedColor(option.color)}
+                  className={`w-12 h-12 rounded-full border-2 transition-all duration-200 ${
+                    selectedColor === option.color
+                      ? 'border-white scale-110 shadow-lg'
+                      : 'border-gray-400 hover:border-white hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: option.color }}
+                  title={option.name}
+                />
+              ))}
+            </div>
+            <p className="text-sm text-gray-400 mt-2 text-center">
+              Selected: {colorOptions.find(c => c.color === selectedColor)?.name}
+            </p>
+          </div>
         </div>
 
         {/* Action Buttons */}

@@ -22,11 +22,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create spark endpoint
   app.post("/api/sparks", async (req, res) => {
     try {
+      const { flashColor = "#FFB800" } = req.body;
       const sparkId = `FLY-${nanoid(6).toUpperCase()}`;
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
       
       const sparkData = insertSparkSchema.parse({
         id: sparkId,
+        flashColor,
         expiresAt,
         isActive: true,
       });
@@ -190,9 +192,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
           case 'flash':
             if (ws.userId && ws.sparkId) {
-              const { timestamp } = message;
+              const { timestamp, synchronized } = message;
               
-              console.log(`Flash signal from ${ws.userId}`);
+              console.log(`Flash signal from ${ws.userId}, synchronized: ${synchronized}`);
+              
+              // Get spark info for color
+              const spark = await storage.getSpark(ws.sparkId);
               
               // Broadcast flash signal to all users in the same spark
               const connections = await storage.getConnectionsBySparkId(ws.sparkId);
@@ -201,6 +206,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (otherWs && otherWs.readyState === WebSocket.OPEN) {
                   otherWs.send(JSON.stringify({
                     type: 'flash_signal',
+                    timestamp,
+                    synchronized: synchronized || false,
+                    color: spark?.flashColor || '#FFB800',
+                    fromUser: ws.userId,
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'start_constant_blink':
+            if (ws.userId && ws.sparkId) {
+              const { timestamp } = message;
+              
+              console.log(`Start constant blink from ${ws.userId}`);
+              
+              // Get spark info for color
+              const spark = await storage.getSpark(ws.sparkId);
+              
+              // Broadcast to all users in the same spark
+              const connections = await storage.getConnectionsBySparkId(ws.sparkId);
+              connections.forEach(connection => {
+                const otherWs = activeConnections.get(`${ws.sparkId}-${connection.userId}`);
+                if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+                  otherWs.send(JSON.stringify({
+                    type: 'start_constant_blink_signal',
+                    timestamp,
+                    color: spark?.flashColor || '#FFB800',
+                    fromUser: ws.userId,
+                  }));
+                }
+              });
+            }
+            break;
+            
+          case 'stop_constant_blink':
+            if (ws.userId && ws.sparkId) {
+              const { timestamp } = message;
+              
+              console.log(`Stop constant blink from ${ws.userId}`);
+              
+              // Broadcast to all users in the same spark
+              const connections = await storage.getConnectionsBySparkId(ws.sparkId);
+              connections.forEach(connection => {
+                const otherWs = activeConnections.get(`${ws.sparkId}-${connection.userId}`);
+                if (otherWs && otherWs.readyState === WebSocket.OPEN) {
+                  otherWs.send(JSON.stringify({
+                    type: 'stop_constant_blink_signal',
                     timestamp,
                     fromUser: ws.userId,
                   }));

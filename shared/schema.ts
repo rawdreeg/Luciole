@@ -5,6 +5,7 @@ import { z } from "zod";
 
 export const sparks = pgTable("sparks", {
   id: varchar("id").primaryKey(),
+  flashColor: varchar("flash_color").default("#FFB800").notNull(), // Default firefly yellow
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -64,6 +65,15 @@ export const wsMessageSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("flash"),
+    timestamp: z.number(),
+    synchronized: z.boolean().optional(),
+  }),
+  z.object({
+    type: z.literal("start_constant_blink"),
+    timestamp: z.number(),
+  }),
+  z.object({
+    type: z.literal("stop_constant_blink"),
     timestamp: z.number(),
   }),
   z.object({
