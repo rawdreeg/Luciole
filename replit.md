@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js server
 - **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
 - **Real-time Communication**: WebSocket server for live location synchronization
-- **Session Storage**: In-memory storage (MemStorage) with automatic cleanup
+- **Session Storage**: PostgreSQL database with DatabaseStorage implementation
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 
 ### Key Components

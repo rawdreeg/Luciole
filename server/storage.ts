@@ -1,5 +1,6 @@
-import { type Spark, type InsertSpark, type SparkConnection, type InsertSparkConnection } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { sparks, sparkConnections, type Spark, type InsertSpark, type SparkConnection, type InsertSparkConnection } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Spark operations
@@ -18,14 +19,8 @@ export interface IStorage {
   cleanupExpiredSparks(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private sparks: Map<string, Spark>;
-  private connections: Map<string, SparkConnection>;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.sparks = new Map();
-    this.connections = new Map();
-    
     // Setup cleanup interval
     setInterval(() => {
       this.cleanupExpiredSparks();
@@ -33,104 +28,95 @@ export class MemStorage implements IStorage {
   }
 
   async createSpark(insertSpark: InsertSpark): Promise<Spark> {
-    const spark: Spark = {
-      ...insertSpark,
-      createdAt: new Date(),
-      isActive: insertSpark.isActive ?? true,
-    };
-    this.sparks.set(spark.id, spark);
+    const [spark] = await db
+      .insert(sparks)
+      .values(insertSpark)
+      .returning();
     return spark;
   }
 
   async getSpark(id: string): Promise<Spark | undefined> {
-    return this.sparks.get(id);
+    const [spark] = await db.select().from(sparks).where(eq(sparks.id, id));
+    return spark || undefined;
   }
 
   async updateSparkActivity(id: string, isActive: boolean): Promise<void> {
-    const spark = this.sparks.get(id);
-    if (spark) {
-      this.sparks.set(id, { ...spark, isActive });
-    }
+    await db
+      .update(sparks)
+      .set({ isActive })
+      .where(eq(sparks.id, id));
   }
 
   async createConnection(insertConnection: InsertSparkConnection): Promise<SparkConnection> {
-    const id = randomUUID();
-    const connection: SparkConnection = {
-      ...insertConnection,
-      id,
-      lastSeen: new Date(),
-      latitude: insertConnection.latitude ?? null,
-      longitude: insertConnection.longitude ?? null,
-      isConnected: insertConnection.isConnected ?? true,
-    };
-    this.connections.set(id, connection);
+    const [connection] = await db
+      .insert(sparkConnections)
+      .values(insertConnection)
+      .returning();
     return connection;
   }
 
   async getConnectionsBySparkId(sparkId: string): Promise<SparkConnection[]> {
-    return Array.from(this.connections.values()).filter(
-      (connection) => connection.sparkId === sparkId && connection.isConnected
-    );
+    return await db
+      .select()
+      .from(sparkConnections)
+      .where(and(
+        eq(sparkConnections.sparkId, sparkId),
+        eq(sparkConnections.isConnected, true)
+      ));
   }
 
   async updateConnectionLocation(userId: string, sparkId: string, latitude: number, longitude: number): Promise<void> {
-    const connection = Array.from(this.connections.values()).find(
-      (c) => c.userId === userId && c.sparkId === sparkId
-    );
-    if (connection) {
-      this.connections.set(connection.id, {
-        ...connection,
-        latitude,
-        longitude,
-        lastSeen: new Date(),
-      });
-    }
+    await db
+      .update(sparkConnections)
+      .set({ 
+        latitude, 
+        longitude, 
+        lastSeen: new Date() 
+      })
+      .where(and(
+        eq(sparkConnections.userId, userId),
+        eq(sparkConnections.sparkId, sparkId)
+      ));
   }
 
   async updateConnectionStatus(userId: string, sparkId: string, isConnected: boolean): Promise<void> {
-    const connection = Array.from(this.connections.values()).find(
-      (c) => c.userId === userId && c.sparkId === sparkId
-    );
-    if (connection) {
-      this.connections.set(connection.id, {
-        ...connection,
-        isConnected,
-        lastSeen: new Date(),
-      });
-    }
+    await db
+      .update(sparkConnections)
+      .set({ 
+        isConnected, 
+        lastSeen: new Date() 
+      })
+      .where(and(
+        eq(sparkConnections.userId, userId),
+        eq(sparkConnections.sparkId, sparkId)
+      ));
   }
 
   async getConnectionByUserAndSpark(userId: string, sparkId: string): Promise<SparkConnection | undefined> {
-    return Array.from(this.connections.values()).find(
-      (c) => c.userId === userId && c.sparkId === sparkId
-    );
+    const [connection] = await db
+      .select()
+      .from(sparkConnections)
+      .where(and(
+        eq(sparkConnections.userId, userId),
+        eq(sparkConnections.sparkId, sparkId)
+      ));
+    return connection || undefined;
   }
 
   async cleanupExpiredSparks(): Promise<void> {
     const now = new Date();
     
     // Remove expired sparks
-    Array.from(this.sparks.entries()).forEach(([id, spark]) => {
-      if (spark.expiresAt < now) {
-        this.sparks.delete(id);
-        
-        // Remove associated connections
-        Array.from(this.connections.entries()).forEach(([connId, connection]) => {
-          if (connection.sparkId === id) {
-            this.connections.delete(connId);
-          }
-        });
-      }
-    });
+    await db
+      .delete(sparks)
+      .where(sql`${sparks.expiresAt} < ${now}`);
     
     // Remove stale connections (not seen for 5 minutes)
     const staleThreshold = new Date(now.getTime() - 5 * 60 * 1000);
-    Array.from(this.connections.entries()).forEach(([id, connection]) => {
-      if (connection.lastSeen < staleThreshold) {
-        this.connections.delete(id);
-      }
-    });
+    await db
+      .delete(sparkConnections)
+      .where(sql`${sparkConnections.lastSeen} < ${staleThreshold}`);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

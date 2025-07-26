@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, boolean, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -19,6 +19,18 @@ export const sparkConnections = pgTable("spark_connections", {
   lastSeen: timestamp("last_seen").default(sql`now()`).notNull(),
   isConnected: boolean("is_connected").default(true).notNull(),
 });
+
+// Relations
+export const sparksRelations = relations(sparks, ({ many }) => ({
+  connections: many(sparkConnections),
+}));
+
+export const sparkConnectionsRelations = relations(sparkConnections, ({ one }) => ({
+  spark: one(sparks, {
+    fields: [sparkConnections.sparkId],
+    references: [sparks.id],
+  }),
+}));
 
 export const insertSparkSchema = createInsertSchema(sparks).omit({
   createdAt: true,
