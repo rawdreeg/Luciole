@@ -13,21 +13,17 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
   const connect = () => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    
-    // In development, connect directly to the backend server port (5000)
-    // In production, use the same host and port as the current page
-    let wsUrl;
-    if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
-      // Development or Replit environment - backend runs on the same host
-      wsUrl = `${protocol}//${window.location.host}/ws`;
-    } else {
-      // Production environment
-      wsUrl = `${protocol}//${window.location.host}/ws`;
+    try {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      
+      console.log("Connecting to WebSocket:", wsUrl);
+      ws.current = new WebSocket(wsUrl);
+    } catch (error) {
+      console.error("Failed to create WebSocket connection:", error);
+      setIsConnected(false);
+      return;
     }
-    
-    console.log("Connecting to WebSocket:", wsUrl);
-    ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
       setIsConnected(true);
@@ -44,15 +40,18 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       }
     };
 
-    ws.current.onclose = () => {
+    ws.current.onclose = (event) => {
       setIsConnected(false);
       options.onDisconnect?.();
-      console.log("WebSocket disconnected");
+      console.log("WebSocket disconnected", event.code, event.reason);
       
-      // Attempt to reconnect after 3 seconds
-      reconnectTimer.current = setTimeout(() => {
-        connect();
-      }, 3000);
+      // Only attempt to reconnect if it wasn't a manual close
+      if (event.code !== 1000) {
+        reconnectTimer.current = setTimeout(() => {
+          console.log("Attempting to reconnect...");
+          connect();
+        }, 3000);
+      }
     };
 
     ws.current.onerror = (error) => {
