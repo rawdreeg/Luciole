@@ -14,8 +14,19 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   const connect = () => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
+    // In development, connect directly to the backend server port (5000)
+    // In production, use the same host and port as the current page
+    let wsUrl;
+    if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
+      // Development or Replit environment - backend runs on the same host
+      wsUrl = `${protocol}//${window.location.host}/ws`;
+    } else {
+      // Production environment
+      wsUrl = `${protocol}//${window.location.host}/ws`;
+    }
+    
+    console.log("Connecting to WebSocket:", wsUrl);
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
@@ -46,6 +57,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     ws.current.onerror = (error) => {
       console.error("WebSocket error:", error);
+      setIsConnected(false);
     };
   };
 
