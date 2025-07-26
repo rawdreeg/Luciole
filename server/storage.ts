@@ -36,6 +36,7 @@ export class MemStorage implements IStorage {
     const spark: Spark = {
       ...insertSpark,
       createdAt: new Date(),
+      isActive: insertSpark.isActive ?? true,
     };
     this.sparks.set(spark.id, spark);
     return spark;
@@ -58,6 +59,9 @@ export class MemStorage implements IStorage {
       ...insertConnection,
       id,
       lastSeen: new Date(),
+      latitude: insertConnection.latitude ?? null,
+      longitude: insertConnection.longitude ?? null,
+      isConnected: insertConnection.isConnected ?? true,
     };
     this.connections.set(id, connection);
     return connection;
@@ -106,26 +110,26 @@ export class MemStorage implements IStorage {
     const now = new Date();
     
     // Remove expired sparks
-    for (const [id, spark] of this.sparks.entries()) {
+    Array.from(this.sparks.entries()).forEach(([id, spark]) => {
       if (spark.expiresAt < now) {
         this.sparks.delete(id);
         
         // Remove associated connections
-        for (const [connId, connection] of this.connections.entries()) {
+        Array.from(this.connections.entries()).forEach(([connId, connection]) => {
           if (connection.sparkId === id) {
             this.connections.delete(connId);
           }
-        }
+        });
       }
-    }
+    });
     
     // Remove stale connections (not seen for 5 minutes)
     const staleThreshold = new Date(now.getTime() - 5 * 60 * 1000);
-    for (const [id, connection] of this.connections.entries()) {
+    Array.from(this.connections.entries()).forEach(([id, connection]) => {
       if (connection.lastSeen < staleThreshold) {
         this.connections.delete(id);
       }
-    }
+    });
   }
 }
 

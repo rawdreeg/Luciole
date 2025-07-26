@@ -13,9 +13,15 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/spark/:sparkId" component={SparkCreated} />
-      <Route path="/s/:sparkId" component={Connected} />
-      <Route path="/sync/:sparkId" component={Synchronized} />
+      <Route path="/spark/:sparkId">
+        {(params) => <SparkCreated sparkId={params.sparkId} />}
+      </Route>
+      <Route path="/s/:sparkId">
+        {(params) => <Connected sparkId={params.sparkId} />}
+      </Route>
+      <Route path="/sync/:sparkId">
+        {(params) => <Synchronized sparkId={params.sparkId} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

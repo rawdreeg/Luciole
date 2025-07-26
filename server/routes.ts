@@ -59,6 +59,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get spark connections
   app.get("/api/sparks/:id/connections", async (req, res) => {
     try {
+      const spark = await storage.getSpark(req.params.id);
+      if (!spark) {
+        return res.status(404).json({ message: "Spark not found" });
+      }
+      
       const connections = await storage.getConnectionsBySparkId(req.params.id);
       res.json(connections);
     } catch (error) {

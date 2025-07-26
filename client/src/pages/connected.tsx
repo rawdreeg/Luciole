@@ -20,7 +20,7 @@ export default function Connected({ sparkId }: ConnectedProps) {
   const [otherUsers, setOtherUsers] = useState<Array<{ userId: string; latitude: number; longitude: number }>>([]);
   
   const { data: spark } = useQuery<Spark>({
-    queryKey: ["/api/sparks", sparkId],
+    queryKey: [`/api/sparks/${sparkId}`],
   });
 
   const { latitude, longitude, error: locationError } = useGeolocation();

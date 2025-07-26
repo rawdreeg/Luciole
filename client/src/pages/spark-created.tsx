@@ -19,11 +19,11 @@ export default function SparkCreated({ sparkId }: SparkCreatedProps) {
   const { toast } = useToast();
 
   const { data: spark } = useQuery<Spark>({
-    queryKey: ["/api/sparks", sparkId],
+    queryKey: [`/api/sparks/${sparkId}`],
   });
 
   const { data: connections = [] } = useQuery<SparkConnection[]>({
-    queryKey: ["/api/sparks", sparkId, "connections"],
+    queryKey: [`/api/sparks/${sparkId}/connections`],
     refetchInterval: 2000,
   });
 
