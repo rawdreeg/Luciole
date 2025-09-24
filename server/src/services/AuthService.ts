@@ -24,7 +24,10 @@ export class AuthService {
       return null;
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "secret", {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET environment variable is not set. Application cannot sign tokens securely.");
+    }
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
