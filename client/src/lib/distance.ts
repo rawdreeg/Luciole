@@ -1,4 +1,12 @@
 // Calculate distance between two coordinates using Haversine formula
+/**
+ * Calculates the distance between two geographical points using the Haversine formula.
+ * @param {number} lat1 - The latitude of the first point.
+ * @param {number} lon1 - The longitude of the first point.
+ * @param {number} lat2 - The latitude of the second point.
+ * @param {number} lon2 - The longitude of the second point.
+ * @returns {number} The distance between the two points in meters.
+ */
 export function calculateDistance(
   lat1: number,
   lon1: number,

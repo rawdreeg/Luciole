@@ -4,10 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X, Plus, Check, Heart } from "lucide-react";
 
+/**
+ * @interface SynchronizedProps
+ * @description Defines the props for the Synchronized component.
+ * @property {string} sparkId - The ID of the spark the user is synchronized with.
+ */
 interface SynchronizedProps {
   sparkId: string;
 }
 
+/**
+ * The page displayed when users are synchronized.
+ * It shows a success message, synchronized animation, and options to complete or start a new spark.
+ * @param {SynchronizedProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered synchronized page.
+ */
 export default function Synchronized({ sparkId }: SynchronizedProps) {
   const [, setLocation] = useLocation();
   const [syncAccuracy] = useState(Math.floor(Math.random() * 5) + 95); // 95-99%
@@ -20,14 +31,23 @@ export default function Synchronized({ sparkId }: SynchronizedProps) {
     }
   }, []);
 
+  /**
+   * Handles disconnecting and returning to the home page.
+   */
   const handleDisconnect = () => {
     setLocation("/");
   };
 
+  /**
+   * Handles starting a new spark and returning to the home page.
+   */
   const handleNewSpark = () => {
     setLocation("/");
   };
 
+  /**
+   * Handles completing the synchronization and returning to the home page.
+   */
   const handleComplete = () => {
     setLocation("/");
   };

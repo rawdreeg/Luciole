@@ -3,11 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrCode } from "lucide-react";
 
+/**
+ * @interface QRModalProps
+ * @description Defines the props for the QRModal component.
+ * @property {string} url - The URL to be encoded in the QR code.
+ * @property {() => void} onClose - A callback function to be called when the modal is closed.
+ */
 interface QRModalProps {
   url: string;
   onClose: () => void;
 }
 
+/**
+ * A modal component that displays a QR code.
+ * The QR code is generated using a public API and encodes a URL that can be
+ * scanned by other devices to join a spark.
+ * @param {QRModalProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered QR code modal component.
+ */
 export function QRModal({ url, onClose }: QRModalProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 

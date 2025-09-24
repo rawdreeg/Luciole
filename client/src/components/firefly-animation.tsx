@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
 
+/**
+ * @interface FireflyAnimationProps
+ * @description Defines the props for the FireflyAnimation component.
+ * @property {boolean} [isFlashing] - Whether the animation should perform a full-screen flash.
+ * @property {boolean} [isConstantBlinking] - Whether the fireflies should blink in a constant, synchronized manner.
+ * @property {string} [flashColor] - The color of the firefly and the flash.
+ * @property {() => void} [onFlashComplete] - A callback function to be called when the flash animation is complete.
+ */
 interface FireflyAnimationProps {
   isFlashing?: boolean;
   isConstantBlinking?: boolean;
@@ -7,6 +15,13 @@ interface FireflyAnimationProps {
   onFlashComplete?: () => void;
 }
 
+/**
+ * A component that renders a firefly animation.
+ * It can display a regular dancing firefly animation, a synchronized blinking animation,
+ * and a full-screen flash effect.
+ * @param {FireflyAnimationProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered firefly animation component.
+ */
 export function FireflyAnimation({ 
   isFlashing = false, 
   isConstantBlinking = false,

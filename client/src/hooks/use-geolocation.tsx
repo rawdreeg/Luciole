@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 
+/**
+ * @interface GeolocationState
+ * @description Represents the state of the user's geolocation, including their coordinates, accuracy, and any potential errors.
+ * @property {number | null} latitude - The user's latitude.
+ * @property {number | null} longitude - The user's longitude.
+ * @property {number | null} accuracy - The accuracy of the location in meters.
+ * @property {string | null} error - Any error message related to geolocation.
+ * @property {boolean} loading - Whether the geolocation is currently being fetched.
+ */
 interface GeolocationState {
   latitude: number | null;
   longitude: number | null;
@@ -8,6 +17,12 @@ interface GeolocationState {
   loading: boolean;
 }
 
+/**
+ * A custom hook for tracking the user's geolocation.
+ * It uses the `navigator.geolocation` API to watch for changes in the user's position
+ * and provides the current location, accuracy, and any errors.
+ * @returns {GeolocationState} The current geolocation state.
+ */
 export function useGeolocation() {
   const [state, setState] = useState<GeolocationState>({
     latitude: null,
@@ -27,6 +42,10 @@ export function useGeolocation() {
       return;
     }
 
+    /**
+     * Handles a successful geolocation update.
+     * @param {GeolocationPosition} position - The new position.
+     */
     const handleSuccess = (position: GeolocationPosition) => {
       setState({
         latitude: position.coords.latitude,
@@ -37,6 +56,10 @@ export function useGeolocation() {
       });
     };
 
+    /**
+     * Handles an error in getting the geolocation.
+     * @param {GeolocationPositionError} error - The error object.
+     */
     const handleError = (error: GeolocationPositionError) => {
       let errorMessage = "Unknown location error";
       

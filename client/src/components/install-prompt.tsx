@@ -4,16 +4,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * @interface InstallPromptProps
+ * @description Defines the props for the InstallPrompt component.
+ * @property {() => void} onDismiss - A callback function to be called when the prompt is dismissed.
+ */
 interface InstallPromptProps {
   onDismiss: () => void;
 }
 
+/**
+ * A component that prompts the user to install the application as a PWA.
+ * It listens for the `beforeinstallprompt` event and displays a custom
+ * installation prompt when the event is fired.
+ * @param {InstallPromptProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered installation prompt component.
+ */
 export function InstallPrompt({ onDismiss }: InstallPromptProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
 
   // Listen for the beforeinstallprompt event
   useState(() => {
+    /**
+     * Handles the `beforeinstallprompt` event.
+     * It prevents the default prompt from showing and saves the event object
+     * to be used later for a custom prompt.
+     * @param {any} e - The `beforeinstallprompt` event.
+     */
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -26,6 +44,11 @@ export function InstallPrompt({ onDismiss }: InstallPromptProps) {
     };
   });
 
+  /**
+   * Handles the click event on the install button.
+   * It shows the installation prompt to the user and displays a toast message
+   * based on their choice.
+   */
   const handleInstall = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();

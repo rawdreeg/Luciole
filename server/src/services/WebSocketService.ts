@@ -3,20 +3,41 @@ import { Server } from "http";
 import { wsMessageSchema } from "@shared/zod";
 import { storage } from "../storage";
 
+/**
+ * @interface ExtendedWebSocket
+ * @extends {WebSocket}
+ * @description Extends the WebSocket interface to include optional `userId` and `sparkId` properties.
+ * This allows for tracking user and spark information on each connection.
+ */
 interface ExtendedWebSocket extends WebSocket {
   userId?: string;
   sparkId?: string;
 }
 
+/**
+ * @class WebSocketService
+ * @description Manages all real-time communication using WebSockets.
+ * This class handles WebSocket connections, message parsing, and broadcasting
+ * messages to clients within the same spark.
+ */
 export class WebSocketService {
   private wss: WebSocketServer;
   private activeConnections = new Map<string, ExtendedWebSocket>();
 
+  /**
+   * @constructor
+   * @param {Server} server - The HTTP server instance to attach the WebSocket server to.
+   */
   constructor(server: Server) {
     this.wss = new WebSocketServer({ server, path: "/ws" });
     this.wss.on("connection", this.handleConnection);
   }
 
+  /**
+   * Handles a new WebSocket connection.
+   * It sets up listeners for messages, close, and error events.
+   * @param {ExtendedWebSocket} ws - The new WebSocket connection.
+   */
   private handleConnection = (ws: ExtendedWebSocket) => {
     console.log("New WebSocket connection");
 
@@ -103,6 +124,14 @@ export class WebSocketService {
     });
   };
 
+  /**
+   * Handles a "join" message from a client.
+   * It validates the spark, associates the user with the connection, and notifies
+   * other users in the spark.
+   * @param {ExtendedWebSocket} ws - The WebSocket connection.
+   * @param {string} sparkId - The ID of the spark to join.
+   * @param {string} userId - The ID of the user joining.
+   */
   private handleJoin = async (
     ws: ExtendedWebSocket,
     sparkId: string,
@@ -152,6 +181,14 @@ export class WebSocketService {
     );
   };
 
+  /**
+   * Handles a "location" message from a client.
+   * It updates the user's location in the database and broadcasts the new
+   * location to other clients in the same spark.
+   * @param {ExtendedWebSocket} ws - The WebSocket connection.
+   * @param {number} latitude - The user's new latitude.
+   * @param {number} longitude - The user's new longitude.
+   */
   private handleLocationUpdate = async (
     ws: ExtendedWebSocket,
     latitude: number,
@@ -186,6 +223,12 @@ export class WebSocketService {
     );
   };
 
+  /**
+   * Handles a client disconnection.
+   * It removes the connection from the active connections map, updates the
+   * connection status in the database, and notifies other users in the spark.
+   * @param {ExtendedWebSocket} ws - The disconnected WebSocket.
+   */
   private handleDisconnection = async (ws: ExtendedWebSocket) => {
     if (!ws.userId || !ws.sparkId) return;
 
@@ -204,6 +247,12 @@ export class WebSocketService {
     );
   };
 
+  /**
+   * Broadcasts a message to all clients connected to a specific spark.
+   * @param {string} sparkId - The ID of the spark to broadcast to.
+   * @param {any} message - The message to send.
+   * @param {string} [excludeUserId] - An optional user ID to exclude from the broadcast.
+   */
   private broadcast = (
     sparkId: string,
     message: any,
