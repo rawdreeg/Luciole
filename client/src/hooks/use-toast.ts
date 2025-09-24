@@ -18,7 +18,7 @@ const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
 /**
- * @typedef {object} ToasterToast
+ * @interface ToasterToast
  * @description Represents a toast object with additional properties for the toaster.
  * @property {string} id - The unique ID of the toast.
  * @property {React.ReactNode} [title] - The title of the toast.

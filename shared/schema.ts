@@ -2,7 +2,7 @@ import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, boolean, real } from "drizzle-orm/pg-core";
 
 /**
- * @typedef {object} Spark
+ * @interface Spark
  * @property {string} id - The unique identifier for the spark.
  * @property {string} flashColor - The color of the spark's flash, defaults to firefly yellow.
  * @property {Date} createdAt - The timestamp when the spark was created.
@@ -18,7 +18,7 @@ export const sparks = pgTable("sparks", {
 });
 
 /**
- * @typedef {object} SparkConnection
+ * @interface SparkConnection
  * @property {string} id - The unique identifier for the spark connection.
  * @property {string} sparkId - The ID of the spark this connection belongs to.
  * @property {string} userId - The ID of the user connected to the spark.
@@ -57,7 +57,7 @@ export const sparkConnectionsRelations = relations(sparkConnections, ({ one }) =
 }));
 
 /**
- * @typedef {object} User
+ * @interface User
  * @property {string} id - The unique identifier for the user.
  * @property {string} username - The user's unique username.
  * @property {string} password - The user's hashed password.
