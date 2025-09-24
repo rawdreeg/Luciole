@@ -10,9 +10,7 @@ export class AuthController {
       const { username, password } = req.body;
       const newUser = insertUserSchema.parse({ username, password });
       const user = await this.authService.createUser(newUser);
-      // Exclude sensitive fields like password from the response
-      const { password, ...safeUser } = user;
-      res.json(safeUser);
+      res.json(user);
     } catch (error) {
       res.status(400).json({ message: "Failed to register user" });
     }

@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import { InsertSpark } from "@shared/schema";
+import { InsertSpark } from "@shared/zod";
 
 export class SparkService {
   async createSpark(sparkData: InsertSpark) {

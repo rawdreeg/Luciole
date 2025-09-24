@@ -1,4 +1,5 @@
-import { users, sparks, sparkConnections, type User, type InsertUser, type Spark, type InsertSpark, type SparkConnection, type InsertSparkConnection } from "@shared/schema";
+import { users, sparks, sparkConnections } from "@shared/schema";
+import { User, InsertUser, Spark, InsertSpark, SparkConnection, InsertSparkConnection } from "@shared/zod";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
 
