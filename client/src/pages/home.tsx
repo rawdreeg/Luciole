@@ -9,7 +9,7 @@ import { FireflyAnimation } from "@/components/firefly-animation";
 import { InstallPrompt } from "@/components/install-prompt";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Spark } from "@shared/schema";
+import type { Spark } from "@shared/zod";
 
 export default function Home() {
   const [, setLocation] = useLocation();

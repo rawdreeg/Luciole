@@ -9,7 +9,7 @@ import { FireflyAnimation } from "@/components/firefly-animation";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { calculateDistance } from "@/lib/distance";
-import type { Spark } from "@shared/schema";
+import type { Spark } from "@shared/zod";
 
 interface ConnectedProps {
   sparkId: string;

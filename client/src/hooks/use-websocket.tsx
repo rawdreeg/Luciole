@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { WSMessage } from "@shared/schema";
+import type { WSMessage } from "@shared/zod";
 
 interface UseWebSocketOptions {
   onMessage?: (message: any) => void;

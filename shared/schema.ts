@@ -1,7 +1,7 @@
 import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, boolean, real } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
 export const sparks = pgTable("sparks", {
   id: varchar("id").primaryKey(),
@@ -46,6 +46,16 @@ export type InsertSpark = z.infer<typeof insertSparkSchema>;
 export type Spark = typeof sparks.$inferSelect;
 export type InsertSparkConnection = z.infer<typeof insertSparkConnectionSchema>;
 export type SparkConnection = typeof sparkConnections.$inferSelect;
+
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: varchar("username").unique().notNull(),
+  password: varchar("password").notNull(),
+});
+
+export const insertUserSchema = createInsertSchema(users);
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 // WebSocket message types
 export const wsMessageSchema = z.discriminatedUnion("type", [
