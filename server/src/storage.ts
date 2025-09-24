@@ -42,7 +42,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return user;
   }
 
   async createSpark(insertSpark: InsertSpark): Promise<Spark> {
