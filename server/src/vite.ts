@@ -7,8 +7,7 @@ import viteConfig from "../../vite.config";
 import { nanoid } from "nanoid";
 
 /**
- * The Vite logger instance.
- * @type {import('vite').Logger}
+ * The Vite logger instance used for logging Vite-related messages.
  */
 const viteLogger = createLogger();
 
