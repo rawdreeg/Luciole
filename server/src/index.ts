@@ -12,6 +12,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 
 (async () => {
+  if (!process.env.JWT_SECRET) {
+    log("FATAL ERROR: JWT_SECRET is not set.", "server");
+    process.exit(1);
+  }
+
   const server = createServer(app);
   new WebSocketService(server);
 
