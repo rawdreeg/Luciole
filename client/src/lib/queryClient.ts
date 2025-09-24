@@ -36,7 +36,7 @@ export async function apiRequest(
 }
 
 /**
- * @typedef {"returnNull" | "throw"} UnauthorizedBehavior
+ * @type {"returnNull" | "throw"}
  * @description Defines the behavior when an unauthorized response is received.
  */
 type UnauthorizedBehavior = "returnNull" | "throw";
