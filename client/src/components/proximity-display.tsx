@@ -1,13 +1,32 @@
+/**
+ * @interface Position
+ * @description Represents a geographical position with latitude and longitude.
+ * @property {number} latitude - The latitude of the position.
+ * @property {number} longitude - The longitude of the position.
+ */
 interface Position {
   latitude: number;
   longitude: number;
 }
 
+/**
+ * @interface ProximityDisplayProps
+ * @description Defines the props for the ProximityDisplay component.
+ * @property {Position | null} userPosition - The current user's position.
+ * @property {Array<{ userId: string; latitude: number; longitude: number }>} otherUsers - An array of other users with their positions.
+ */
 interface ProximityDisplayProps {
   userPosition: Position | null;
   otherUsers: Array<{ userId: string; latitude: number; longitude: number }>;
 }
 
+/**
+ * A component that displays a proximity radar-like interface.
+ * It shows the current user at the center and other users as dots around them.
+ * The distance rings give a visual indication of proximity.
+ * @param {ProximityDisplayProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered proximity display component.
+ */
 export function ProximityDisplay({ userPosition, otherUsers }: ProximityDisplayProps) {
   return (
     <div className="relative">

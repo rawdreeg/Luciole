@@ -10,10 +10,22 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import type { Spark, SparkConnection } from "@shared/zod";
 
+/**
+ * @interface SparkCreatedProps
+ * @description Defines the props for the SparkCreated component.
+ * @property {string} sparkId - The ID of the newly created spark.
+ */
 interface SparkCreatedProps {
   sparkId: string;
 }
 
+/**
+ * The page displayed after a new spark has been created.
+ * It provides options to share the spark via a link, QR code, or SMS,
+ * and shows the number of connected users.
+ * @param {SparkCreatedProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered spark created page.
+ */
 export default function SparkCreated({ sparkId }: SparkCreatedProps) {
   const [, setLocation] = useLocation();
   const [showQRModal, setShowQRModal] = useState(false);
@@ -62,6 +74,9 @@ export default function SparkCreated({ sparkId }: SparkCreatedProps) {
 
   const shareableLink = `${window.location.origin}/s/${sparkId}`;
 
+  /**
+   * Copies the shareable link to the clipboard.
+   */
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareableLink);
@@ -78,12 +93,18 @@ export default function SparkCreated({ sparkId }: SparkCreatedProps) {
     }
   };
 
+  /**
+   * Opens the user's SMS app to share the link.
+   */
   const handleShareViaSMS = () => {
     const message = `Join me on Luciole! ${shareableLink}`;
     const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
     window.location.href = smsUrl;
   };
 
+  /**
+   * Navigates back to the home page.
+   */
   const handleGoHome = () => {
     setLocation("/");
   };

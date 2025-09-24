@@ -11,6 +11,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Spark } from "@shared/zod";
 
+/**
+ * The home page of the application.
+ * It allows users to create a new spark with a custom color or join an existing one via a link.
+ * @returns {JSX.Element} The rendered home page.
+ */
 export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -48,10 +53,16 @@ export default function Home() {
     },
   });
 
+  /**
+   * Handles the creation of a new spark.
+   */
   const handleCreateSpark = () => {
     createSparkMutation.mutate();
   };
 
+  /**
+   * Handles joining a spark via a pasted link.
+   */
   const handleJoinViaLink = () => {
     const input = prompt("Paste the Luciole link here:");
     if (input) {

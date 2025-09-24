@@ -9,6 +9,11 @@ import SparkCreated from "@/pages/spark-created";
 import Connected from "@/pages/connected";
 import Synchronized from "@/pages/synchronized";
 
+/**
+ * The main router component for the application.
+ * It defines all the possible routes and the components they render.
+ * @returns {JSX.Element} The rendered router component.
+ */
 function Router() {
   return (
     <Switch>
@@ -27,6 +32,12 @@ function Router() {
   );
 }
 
+/**
+ * The main component of the application.
+ * It sets up the context providers for React Query and tooltips,
+ * and renders the main layout and router.
+ * @returns {JSX.Element} The rendered App component.
+ */
 function App() {
   return (
     <QueryClientProvider client={queryClient}>

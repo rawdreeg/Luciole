@@ -6,8 +6,17 @@ import { type Server } from "http";
 import viteConfig from "../../vite.config";
 import { nanoid } from "nanoid";
 
+/**
+ * The Vite logger instance.
+ * @type {import('vite').Logger}
+ */
 const viteLogger = createLogger();
 
+/**
+ * Logs a message to the console with a timestamp and source.
+ * @param {string} message - The message to log.
+ * @param {string} [source="express"] - The source of the log message.
+ */
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -19,6 +28,15 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+/**
+ * Sets up the Vite development server.
+ * This function configures and creates a Vite server in middleware mode,
+ * allowing it to be used with an existing Express server. It handles Hot Module Replacement (HMR)
+ * and serves the client-side application.
+ * @param {Express} app - The Express application instance.
+ * @param {Server} server - The HTTP server instance.
+ * @returns {Promise<void>} A promise that resolves when the Vite server is set up.
+ */
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
@@ -52,7 +70,7 @@ export async function setupVite(app: Express, server: Server) {
         "index.html",
       );
 
-      // always reload the index.html file from disk incase it changes
+      // always reload the index.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
@@ -67,6 +85,13 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+/**
+ * Serves static files for the production build.
+ * This function configures the Express app to serve the built client-side application
+ * from the `public` directory. It also includes a fallback to `index.html` for single-page applications.
+ * @param {Express} app - The Express application instance.
+ * @throws {Error} If the build directory does not exist.
+ */
 export function serveStatic(app: Express) {
   const distPath = path.resolve(import.meta.dirname, "public");
 

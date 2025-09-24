@@ -11,10 +11,22 @@ import { useGeolocation } from "@/hooks/use-geolocation";
 import { calculateDistance } from "@/lib/distance";
 import type { Spark } from "@shared/zod";
 
+/**
+ * @interface ConnectedProps
+ * @description Defines the props for the Connected component.
+ * @property {string} sparkId - The ID of the spark the user is connected to.
+ */
 interface ConnectedProps {
   sparkId: string;
 }
 
+/**
+ * The page for a user who is connected to a spark.
+ * It displays the spark ID, a proximity display of other users, and controls
+ * for flashing and synchronization.
+ * @param {ConnectedProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered connected page.
+ */
 export default function Connected({ sparkId }: ConnectedProps) {
   const [, setLocation] = useLocation();
   const [userId] = useState(() => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
@@ -123,6 +135,9 @@ export default function Connected({ sparkId }: ConnectedProps) {
     }
   }, [isConnected, sendMessage]);
 
+  /**
+   * Handles disconnecting from the spark.
+   */
   const handleDisconnect = () => {
     sendMessage({
       type: 'disconnect',
@@ -130,6 +145,9 @@ export default function Connected({ sparkId }: ConnectedProps) {
     setLocation("/");
   };
 
+  /**
+   * Toggles the flash or constant blinking.
+   */
   const handleFlashToggle = () => {
     if (!isConnected) return;
     
@@ -157,6 +175,9 @@ export default function Connected({ sparkId }: ConnectedProps) {
     }
   };
 
+  /**
+   * Handles a long press on the flash button to start constant blinking.
+   */
   const handleLongPress = () => {
     if (!isConnected || isConstantBlinking) return;
     
@@ -168,6 +189,9 @@ export default function Connected({ sparkId }: ConnectedProps) {
     });
   };
 
+  /**
+   * Handles the completion of the flash animation.
+   */
   const handleFlashComplete = () => {
     setIsFlashing(false);
   };
