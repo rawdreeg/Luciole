@@ -1,8 +1,13 @@
-import { sparks, sparkConnections, type Spark, type InsertSpark, type SparkConnection, type InsertSparkConnection } from "@shared/schema";
+import { users, sparks, sparkConnections } from "@shared/schema";
+import { User, InsertUser, Spark, InsertSpark, SparkConnection, InsertSparkConnection } from "@shared/zod";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations
+  createUser(user: InsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+
   // Spark operations
   createSpark(spark: InsertSpark): Promise<Spark>;
   getSpark(id: string): Promise<Spark | undefined>;
@@ -25,6 +30,19 @@ export class DatabaseStorage implements IStorage {
     setInterval(() => {
       this.cleanupExpiredSparks();
     }, 60000); // Cleanup every minute
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createSpark(insertSpark: InsertSpark): Promise<Spark> {

@@ -8,7 +8,7 @@ import { QRModal } from "@/components/qr-modal";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useGeolocation } from "@/hooks/use-geolocation";
-import type { Spark, SparkConnection } from "@shared/schema";
+import type { Spark, SparkConnection } from "@shared/zod";
 
 interface SparkCreatedProps {
   sparkId: string;
