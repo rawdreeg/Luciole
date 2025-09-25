@@ -1,22 +1,23 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { DatabaseStorage, storage } from "../storage";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { DatabaseStorage } from "../storage";
 import { InsertSpark, InsertSparkConnection, InsertUser } from "@shared/zod";
+import { db } from "../db";
 
-vi.mock("../storage", () => ({
-  storage: {
-    createUser: vi.fn(),
-    getUserByUsername: vi.fn(),
-    createSpark: vi.fn(),
-    getSpark: vi.fn(),
-    updateSparkActivity: vi.fn(),
-    createConnection: vi.fn(),
-    getConnectionsBySparkId: vi.fn(),
-    updateConnectionLocation: vi.fn(),
-    updateConnectionStatus: vi.fn(),
-    getConnectionByUserAndSpark: vi.fn(),
-    cleanupExpiredSparks: vi.fn(),
+vi.mock("../db", () => ({
+  db: {
+    insert: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue([]),
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockResolvedValue([]),
+    delete: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    set: vi.fn().mockReturnThis(),
   },
 }));
+
+const storage = new DatabaseStorage();
 
 describe("DatabaseStorage", () => {
   afterEach(() => {
@@ -31,7 +32,7 @@ describe("DatabaseStorage", () => {
         username: "testuser",
         password: "password",
       };
-      (storage.createUser as any).mockResolvedValue(user);
+      (db.returning as any).mockResolvedValue([user]);
       const dbStorage = new DatabaseStorage();
 
       // Act
@@ -50,10 +51,11 @@ describe("DatabaseStorage", () => {
         username: "testuser",
         password: "password",
       };
-      (storage.getUserByUsername as any).mockResolvedValue(user);
+      (db.where as any).mockResolvedValue([user]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const foundUser = await storage.getUserByUsername("testuser");
+      const foundUser = await dbStorage.getUserByUsername("testuser");
 
       // Assert
       expect(foundUser).toEqual(user);
@@ -69,10 +71,11 @@ describe("DatabaseStorage", () => {
         flashColor: "#FF0000",
         isActive: true,
       };
-      (storage.createSpark as any).mockResolvedValue(spark);
+      (db.returning as any).mockResolvedValue([spark]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const createdSpark = await storage.createSpark(spark);
+      const createdSpark = await dbStorage.createSpark(spark);
 
       // Assert
       expect(createdSpark).toEqual(spark);
@@ -88,10 +91,11 @@ describe("DatabaseStorage", () => {
         flashColor: "#FF0000",
         isActive: true,
       };
-      (storage.getSpark as any).mockResolvedValue(spark);
+      (db.where as any).mockResolvedValue([spark]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const foundSpark = await storage.getSpark("SPK-123");
+      const foundSpark = await dbStorage.getSpark("SPK-123");
 
       // Assert
       expect(foundSpark).toEqual(spark);
@@ -100,11 +104,12 @@ describe("DatabaseStorage", () => {
 
   describe("updateSparkActivity", () => {
     it("should update the activity of a spark", async () => {
+      const dbStorage = new DatabaseStorage();
       // Act
-      await storage.updateSparkActivity("SPK-123", false);
+      await dbStorage.updateSparkActivity("SPK-123", false);
 
       // Assert
-      expect(storage.updateSparkActivity).toHaveBeenCalledWith("SPK-123", false);
+      expect(db.update).toHaveBeenCalled();
     });
   });
 
@@ -118,10 +123,11 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (storage.createConnection as any).mockResolvedValue(connection);
+      (db.returning as any).mockResolvedValue([connection]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const createdConnection = await storage.createConnection(connection);
+      const createdConnection = await dbStorage.createConnection(connection);
 
       // Assert
       expect(createdConnection).toEqual(connection);
@@ -139,10 +145,11 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (storage.getConnectionsBySparkId as any).mockResolvedValue([activeConnection]);
+      (db.where as any).mockResolvedValue([activeConnection]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const connections = await storage.getConnectionsBySparkId(sparkId);
+      const connections = await dbStorage.getConnectionsBySparkId(sparkId);
 
       // Assert
       expect(connections).toEqual([activeConnection]);
@@ -151,21 +158,23 @@ describe("DatabaseStorage", () => {
 
   describe("updateConnectionLocation", () => {
     it("should update the location of a connection", async () => {
+      const dbStorage = new DatabaseStorage();
       // Act
-      await storage.updateConnectionLocation("USR-123", "SPK-123", 1, 1);
+      await dbStorage.updateConnectionLocation("USR-123", "SPK-123", 1, 1);
 
       // Assert
-      expect(storage.updateConnectionLocation).toHaveBeenCalledWith("USR-123", "SPK-123", 1, 1);
+      expect(db.update).toHaveBeenCalled();
     });
   });
 
   describe("updateConnectionStatus", () => {
     it("should update the status of a connection", async () => {
+      const dbStorage = new DatabaseStorage();
       // Act
-      await storage.updateConnectionStatus("USR-123", "SPK-123", false);
+      await dbStorage.updateConnectionStatus("USR-123", "SPK-123", false);
 
       // Assert
-      expect(storage.updateConnectionStatus).toHaveBeenCalledWith("USR-123", "SPK-123", false);
+      expect(db.update).toHaveBeenCalled();
     });
   });
 
@@ -179,10 +188,11 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (storage.getConnectionByUserAndSpark as any).mockResolvedValue(connection);
+      (db.where as any).mockResolvedValue([connection]);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const foundConnection = await storage.getConnectionByUserAndSpark(
+      const foundConnection = await dbStorage.getConnectionByUserAndSpark(
         "USR-123",
         "SPK-123"
       );
@@ -194,11 +204,12 @@ describe("DatabaseStorage", () => {
 
   describe("cleanupExpiredSparks", () => {
     it("should remove expired sparks and stale connections", async () => {
+      const dbStorage = new DatabaseStorage();
       // Act
-      await storage.cleanupExpiredSparks();
+      await dbStorage.cleanupExpiredSparks();
 
       // Assert
-      expect(storage.cleanupExpiredSparks).toHaveBeenCalled();
+      expect(db.delete).toHaveBeenCalledTimes(2);
     });
   });
 });
