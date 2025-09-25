@@ -3,7 +3,7 @@ import { createServer, Server } from "http";
 import { setupVite, serveStatic, log } from "./vite.js";
 import router from "./routes/index.js";
 import { WebSocketService } from "./services/WebSocketService.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+import { errorHandler } from "./middleware/errorHandler";
 import morgan from "morgan";
 
 export const app = express();
