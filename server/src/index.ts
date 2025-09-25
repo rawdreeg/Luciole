@@ -1,50 +1,39 @@
 import express from "express";
-import { createServer } from "http";
-import { setupVite, serveStatic, log } from "./vite";
-import routes from "./routes";
-import { WebSocketService } from "./services/WebSocketService";
-import { errorHandler } from "./middleware/errorHandler";
+import { createServer, Server } from "http";
+import { setupVite, serveStatic, log } from "./vite.js";
+import router from "./routes/index.js";
+import { WebSocketService } from "./services/WebSocketService.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 import morgan from "morgan";
 
-/**
- * The main Express application instance.
- * @type {express.Express}
- */
-const app = express();
+export const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 
-/**
- * The main entry point of the server application.
- * This function sets up the Express server, WebSocket service, routes,
- * and starts listening for incoming connections.
- */
-(async () => {
+export let webSocketService: WebSocketService;
+let server: Server;
+
+export async function start() {
+  log("Starting server...", "server");
   if (!process.env.JWT_SECRET) {
     log("FATAL ERROR: JWT_SECRET is not set.", "server");
     process.exit(1);
   }
 
-  const server = createServer(app);
-  new WebSocketService(server);
+  server = createServer(app);
+  webSocketService = new WebSocketService(server);
 
-  app.use("/api", routes);
+  app.use("/api", router);
 
-  // Importantly, only set up Vite in development and after
-  // setting up all other routes, so the catch-all route
-  // doesn't interfere with other routes.
   if (app.get("env") === "development") {
     await setupVite(app, server);
-  } else {
+  } else if (process.env.NODE_ENV !== "test") {
     serveStatic(app);
   }
 
   app.use(errorHandler);
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT.
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // This serves both the API and the client and is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
@@ -53,4 +42,19 @@ app.use(morgan("dev"));
   }, () => {
     log(`serving on port ${port}`);
   });
-})();
+}
+
+export function close() {
+  log("Closing server...", "server");
+  server.close((err) => {
+    if (err) {
+      log(`Error closing server: ${err}`, "server");
+    } else {
+      log("Server closed.", "server");
+    }
+  });
+}
+
+if (process.env.NODE_ENV !== "test") {
+  start();
+}
