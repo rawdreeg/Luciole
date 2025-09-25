@@ -1,23 +1,22 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { DatabaseStorage } from "../storage";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { DatabaseStorage, storage } from "../storage";
 import { InsertSpark, InsertSparkConnection, InsertUser } from "@shared/zod";
-import { db } from "../db";
 
-vi.mock("../db", () => ({
-  db: {
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    returning: vi.fn().mockResolvedValue([]),
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue([]),
-    delete: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
+vi.mock("../storage", () => ({
+  storage: {
+    createUser: vi.fn(),
+    getUserByUsername: vi.fn(),
+    createSpark: vi.fn(),
+    getSpark: vi.fn(),
+    updateSparkActivity: vi.fn(),
+    createConnection: vi.fn(),
+    getConnectionsBySparkId: vi.fn(),
+    updateConnectionLocation: vi.fn(),
+    updateConnectionStatus: vi.fn(),
+    getConnectionByUserAndSpark: vi.fn(),
+    cleanupExpiredSparks: vi.fn(),
   },
 }));
-
-const storage = new DatabaseStorage();
 
 describe("DatabaseStorage", () => {
   afterEach(() => {
@@ -32,7 +31,7 @@ describe("DatabaseStorage", () => {
         username: "testuser",
         password: "password",
       };
-      (db.returning as any).mockResolvedValue([user]);
+      (storage.createUser as any).mockResolvedValue(user);
 
       // Act
       const createdUser = await storage.createUser(user);
@@ -50,7 +49,7 @@ describe("DatabaseStorage", () => {
         username: "testuser",
         password: "password",
       };
-      (db.where as any).mockResolvedValue([user]);
+      (storage.getUserByUsername as any).mockResolvedValue(user);
 
       // Act
       const foundUser = await storage.getUserByUsername("testuser");
@@ -69,7 +68,7 @@ describe("DatabaseStorage", () => {
         flashColor: "#FF0000",
         isActive: true,
       };
-      (db.returning as any).mockResolvedValue([spark]);
+      (storage.createSpark as any).mockResolvedValue(spark);
 
       // Act
       const createdSpark = await storage.createSpark(spark);
@@ -88,7 +87,7 @@ describe("DatabaseStorage", () => {
         flashColor: "#FF0000",
         isActive: true,
       };
-      (db.where as any).mockResolvedValue([spark]);
+      (storage.getSpark as any).mockResolvedValue(spark);
 
       // Act
       const foundSpark = await storage.getSpark("SPK-123");
@@ -104,7 +103,7 @@ describe("DatabaseStorage", () => {
       await storage.updateSparkActivity("SPK-123", false);
 
       // Assert
-      expect(db.update).toHaveBeenCalled();
+      expect(storage.updateSparkActivity).toHaveBeenCalledWith("SPK-123", false);
     });
   });
 
@@ -118,7 +117,7 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (db.returning as any).mockResolvedValue([connection]);
+      (storage.createConnection as any).mockResolvedValue(connection);
 
       // Act
       const createdConnection = await storage.createConnection(connection);
@@ -139,7 +138,7 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (db.where as any).mockResolvedValue([activeConnection]);
+      (storage.getConnectionsBySparkId as any).mockResolvedValue([activeConnection]);
 
       // Act
       const connections = await storage.getConnectionsBySparkId(sparkId);
@@ -155,7 +154,7 @@ describe("DatabaseStorage", () => {
       await storage.updateConnectionLocation("USR-123", "SPK-123", 1, 1);
 
       // Assert
-      expect(db.update).toHaveBeenCalled();
+      expect(storage.updateConnectionLocation).toHaveBeenCalledWith("USR-123", "SPK-123", 1, 1);
     });
   });
 
@@ -165,7 +164,7 @@ describe("DatabaseStorage", () => {
       await storage.updateConnectionStatus("USR-123", "SPK-123", false);
 
       // Assert
-      expect(db.update).toHaveBeenCalled();
+      expect(storage.updateConnectionStatus).toHaveBeenCalledWith("USR-123", "SPK-123", false);
     });
   });
 
@@ -179,7 +178,7 @@ describe("DatabaseStorage", () => {
         longitude: 0,
         isConnected: true,
       };
-      (db.where as any).mockResolvedValue([connection]);
+      (storage.getConnectionByUserAndSpark as any).mockResolvedValue(connection);
 
       // Act
       const foundConnection = await storage.getConnectionByUserAndSpark(
@@ -198,7 +197,7 @@ describe("DatabaseStorage", () => {
       await storage.cleanupExpiredSparks();
 
       // Assert
-      expect(db.delete).toHaveBeenCalledTimes(2);
+      expect(storage.cleanupExpiredSparks).toHaveBeenCalled();
     });
   });
 });

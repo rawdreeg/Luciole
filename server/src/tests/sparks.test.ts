@@ -1,22 +1,23 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SparkController } from "../controllers/sparks";
 import { SparkService } from "../services/SparkService";
-import { db } from "../db";
+import { storage } from "../storage";
 
-vi.mock("../db", () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn(),
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    returning: vi.fn().mockResolvedValue([]),
+vi.mock("../storage", () => ({
+  storage: {
+    createSpark: vi.fn(),
+    getSpark: vi.fn(),
+    getConnectionsBySparkId: vi.fn(),
   },
 }));
 
 describe("SparkController", () => {
   const sparkService = new SparkService();
   const sparkController = new SparkController(sparkService);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe("createSpark", () => {
     it("should create a new spark", async () => {
@@ -27,7 +28,7 @@ describe("SparkController", () => {
         expiresAt: new Date(),
         isActive: true,
       };
-      (db.returning as any).mockResolvedValue([spark]);
+      (storage.createSpark as any).mockResolvedValue(spark);
       const req: any = { body: { flashColor: "#FFB800" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
@@ -46,7 +47,7 @@ describe("SparkController", () => {
         id: "SPK-123",
         expiresAt: new Date(Date.now() + 1000 * 60 * 60),
       };
-      (db.where as any).mockResolvedValue([spark]);
+      (storage.getSpark as any).mockResolvedValue(spark);
       const req: any = { params: { id: "SPK-123" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
@@ -63,7 +64,7 @@ describe("SparkController", () => {
         id: "SPK-123",
         expiresAt: new Date(Date.now() - 1000),
       };
-      (db.where as any).mockResolvedValue([expiredSpark]);
+      (storage.getSpark as any).mockResolvedValue(expiredSpark);
       const req: any = { params: { id: "SPK-123" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
@@ -76,7 +77,7 @@ describe("SparkController", () => {
 
     it("should return 404 Not Found when the spark does not exist", async () => {
       // Arrange
-      (db.where as any).mockResolvedValue([]);
+      (storage.getSpark as any).mockResolvedValue(undefined);
       const req: any = { params: { id: "SPK-456" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
@@ -91,19 +92,10 @@ describe("SparkController", () => {
   describe("getSparkConnections", () => {
     it("should return all connections for a given spark", async () => {
       // Arrange
-      const spark = { id: "SPK-123" };
+      const spark = { id: "SPK-123", expiresAt: new Date(Date.now() + 1000 * 60 * 60) };
       const connections = [{ userId: "USR-123" }];
-      (db.where as any).mockImplementation((...args: any[]) => {
-        // If called with spark id, return the spark
-        if (args[0] && args[0].id === "SPK-123") {
-          return Promise.resolve([spark]);
-        }
-        // If called for connections, return the connections
-        if (args[0] && args[0].sparkId === "SPK-123") {
-          return Promise.resolve(connections);
-        }
-        return Promise.resolve([]);
-      });
+      (storage.getSpark as any).mockResolvedValue(spark);
+      (storage.getConnectionsBySparkId as any).mockResolvedValue(connections);
       const req: any = { params: { id: "SPK-123" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
@@ -116,7 +108,7 @@ describe("SparkController", () => {
 
     it("should return 404 Not Found when the spark does not exist", async () => {
       // Arrange
-      (db.where as any).mockResolvedValue([]);
+      (storage.getSpark as any).mockResolvedValue(undefined);
       const req: any = { params: { id: "SPK-789" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
