@@ -93,8 +93,17 @@ describe("SparkController", () => {
       // Arrange
       const spark = { id: "SPK-123" };
       const connections = [{ userId: "USR-123" }];
-      (db.where as any).mockResolvedValueOnce([spark]);
-      (db.where as any).mockResolvedValueOnce(connections);
+      (db.where as any).mockImplementation((...args: any[]) => {
+        // If called with spark id, return the spark
+        if (args[0] && args[0].id === "SPK-123") {
+          return Promise.resolve([spark]);
+        }
+        // If called for connections, return the connections
+        if (args[0] && args[0].sparkId === "SPK-123") {
+          return Promise.resolve(connections);
+        }
+        return Promise.resolve([]);
+      });
       const req: any = { params: { id: "SPK-123" } };
       const res: any = { json: vi.fn(), status: vi.fn().mockReturnThis() };
 
