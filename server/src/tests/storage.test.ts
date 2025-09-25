@@ -32,9 +32,10 @@ describe("DatabaseStorage", () => {
         password: "password",
       };
       (storage.createUser as any).mockResolvedValue(user);
+      const dbStorage = new DatabaseStorage();
 
       // Act
-      const createdUser = await storage.createUser(user);
+      const createdUser = await dbStorage.createUser(user);
 
       // Assert
       expect(createdUser).toEqual(user);
